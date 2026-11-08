@@ -1,0 +1,71 @@
+name: Build PURPLE
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure
+        shell: bash
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build (VST3 + AU on macOS + Standalone)
+        shell: bash
+        run: cmake --build build --config Release --parallel 4
+
+      - name: Validate with pluginval (strictness 5)
+        continue-on-error: true   # a failed check is reported but must not block the installer
+        shell: bash
+        run: |
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            curl -L -o pv.zip https://github.com/Tracktion/pluginval/releases/latest/download/pluginval_Windows.zip
+            unzip -q pv.zip
+            ./pluginval.exe --strictness-level 5 --skip-gui-tests --validate "build/PURPLE_artefacts/Release/VST3/PURPLE by Hdax.vst3"
+          else
+            curl -L -o pv.zip https://github.com/Tracktion/pluginval/releases/latest/download/pluginval_macOS.zip
+            unzip -q pv.zip
+            PV=pluginval.app/Contents/MacOS/pluginval
+            chmod +x $PV
+            $PV --strictness-level 5 --skip-gui-tests --validate "build/PURPLE_artefacts/Release/VST3/PURPLE by Hdax.vst3"
+            $PV --strictness-level 5 --skip-gui-tests --validate "build/PURPLE_artefacts/Release/AU/PURPLE by Hdax.component"
+          fi
+
+      - name: Windows installer
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          choco install innosetup -y --no-progress
+          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer\PURPLE.iss
+
+      - name: macOS installer
+        if: runner.os == 'macOS'
+        run: bash installer/build-macos-pkg.sh
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: PURPLE-${{ runner.os }}
+          path: |
+            installer/Output/*.exe
+            installer/Output/*.pkg
+
+      - name: Publish a downloadable release (installer only)
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: build-${{ github.run_number }}
+          name: PURPLE by Hdax - build ${{ github.run_number }}
+          files: |
+            installer/Output/*.exe
+            installer/Output/*.pkg
