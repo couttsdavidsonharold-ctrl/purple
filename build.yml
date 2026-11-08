@@ -48,18 +48,18 @@ jobs:
         shell: pwsh
         run: |
           choco install innosetup -y --no-progress
-          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer\PURPLE.iss
+          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" PURPLE.iss
 
       - name: macOS installer
         if: runner.os == 'macOS'
-        run: bash installer/build-macos-pkg.sh
+        run: bash build-macos-pkg.sh
 
       - uses: actions/upload-artifact@v4
         with:
           name: PURPLE-${{ runner.os }}
           path: |
-            installer/Output/*.exe
-            installer/Output/*.pkg
+            Output/*.exe
+            Output/*.pkg
 
       - name: Publish a downloadable release (installer only)
         uses: softprops/action-gh-release@v2
@@ -67,5 +67,5 @@ jobs:
           tag_name: build-${{ github.run_number }}
           name: PURPLE by Hdax - build ${{ github.run_number }}
           files: |
-            installer/Output/*.exe
-            installer/Output/*.pkg
+            Output/*.exe
+            Output/*.pkg

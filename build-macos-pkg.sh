@@ -1,10 +1,10 @@
 #!/bin/bash
 # Builds an installer .pkg for macOS (VST3 + AU, plus AAX if built).
 set -euo pipefail
-cd "$(dirname "$0")/.."
+cd "$(dirname "$0")"
 ART=build/PURPLE_artefacts/Release
-STAGE=installer/stage
-OUT=installer/Output
+STAGE=stage
+OUT=Output
 rm -rf "$STAGE" "$OUT"; mkdir -p "$STAGE/Library/Audio/Plug-Ins/VST3" "$STAGE/Library/Audio/Plug-Ins/Components" "$OUT"
 
 cp -R "$ART/VST3/PURPLE by Hdax.vst3"        "$STAGE/Library/Audio/Plug-Ins/VST3/"

@@ -43,12 +43,12 @@ juce_add_plugin(PURPLE
     COPY_PLUGIN_AFTER_BUILD FALSE
     VST3_CATEGORIES Fx)
 
-juce_add_binary_data(PurpleAssets SOURCES Assets/PermanentMarker-Regular.ttf)
+juce_add_binary_data(PurpleAssets SOURCES PermanentMarker-Regular.ttf)
 set_target_properties(PurpleAssets PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 target_sources(PURPLE PRIVATE
-    Source/PluginProcessor.cpp
-    Source/PluginEditor.cpp)
+    PluginProcessor.cpp
+    PluginEditor.cpp)
 
 target_compile_definitions(PURPLE PUBLIC
     JUCE_WEB_BROWSER=0
